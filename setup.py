@@ -12,7 +12,7 @@ with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
    name='pdf2pptx',
-   version='1.0.1',
+   version='1.0.2',
    description='Utility to convert a PDF slideshow to Powerpoint PPTX.',
    long_description=long_description,
    long_description_content_type='text/markdown',
@@ -20,10 +20,10 @@ setup(
    url='https://github.com/kevinmcguinness/pdf2pptx',
    license='MIT',
    author_email='kevin.mcguinness@gmail.com',
-   packages=[], 
-   install_requires=['pymupdf', 'python-pptx'],
+   packages=['pdf2pptx'],
+   install_requires=['pymupdf', 'python-pptx', 'click'],
    entry_points={
-       'console_scripts': ['pdf2pptx=pdf2pptx:main'],
+       'console_scripts': ['pdf2pptx=pdf2pptx.cli:main'],
    },
    classifiers=[
         # Trove classifiers
