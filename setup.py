@@ -8,4 +8,7 @@ setup(
    author_email='kevin.mcguinness@gmail.com',
    packages=[], 
    install_requires=['pymupdf', 'python-pptx'],
+   entry_points={
+       'console_scripts': ['pdf2pptx=pdf2pptx:main'],
+   }
 )

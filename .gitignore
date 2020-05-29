@@ -1,3 +1,4 @@
 
 slides.pdf
 *.pyc
+*.egg-info
