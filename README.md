@@ -17,7 +17,7 @@ Uses [PyMuPDF](https://github.com/pymupdf/PyMuPDF) and
 ## Installation
 
 ```bash
-pip install git+https://github.com/kevinmcguinness/pdf2pptx
+pip install pdf2pptx
 ```
 
 ## Usage
