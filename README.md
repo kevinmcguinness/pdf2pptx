@@ -14,3 +14,20 @@ them with a stylus as I present.
 Uses [PyMuPDF](https://github.com/pymupdf/PyMuPDF) and 
 [python-pptx](https://github.com/scanny/python-pptx) to do the hard work.
 
+## Installation
+
+```bash
+pip install git+https://github.com/kevinmcguinness/pdf2pptx
+```
+
+## Usage
+
+The following will create a `slides.pptx` file from a `slides.pdf` file.
+
+```bash
+pdf2pptx slides.pdf
+```
+
+Run `pdf2pptx --help` for more info on the command line interface.
+
+
