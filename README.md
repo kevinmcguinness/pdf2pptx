@@ -1,6 +1,6 @@
 # pdf2pptx
 
-Utility to convert a PDF slideshow to Powerpoint PPTX.
+**Utility to convert a PDF slideshow to Powerpoint PPTX.**
 
 Renders each page as a PNG image and creates the resulting Powerpoint 
 slideshow from these images. Useful when you want to use Powerpoint 
