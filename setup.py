@@ -12,7 +12,7 @@ with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
    name='pdf2pptx',
-   version='1.0.4',
+   version='1.0.5',
    description='Utility to convert a PDF slideshow to Powerpoint PPTX.',
    long_description=long_description,
    long_description_content_type='text/markdown',
