@@ -36,10 +36,10 @@ def main(pdf_file, output_file, resolution, start_page, page_count):
     etc.) with slides created in LaTeX.
     """
     doc = fitz.open(pdf_file)
-    print(pdf_file, 'contains', doc.pageCount, 'slides')
+    print(pdf_file, 'contains', doc.page_count, 'slides')
 
     if page_count is None:
-        page_count = doc.pageCount
+        page_count = doc.page_count
 
     # transformation matrix: slide to pixmap
     zoom = resolution / 72
@@ -50,17 +50,17 @@ def main(pdf_file, output_file, resolution, start_page, page_count):
     blank_slide_layout = prs.slide_layouts[6]
 
     # configure presentation aspect ratio
-    page = doc.loadPage(0)
+    page = doc.load_page(0)
     aspect_ratio = page.rect.width / page.rect.height
     prs.slide_width = int(prs.slide_height * aspect_ratio)
 
     # iterate over slides
     for page_no in trange(start_page, start_page + page_count):
-        page = doc.loadPage(page_no)
+        page = doc.load_page(page_no)
 
         # write slide as a pixmap
-        pixmap = page.getPixmap(matrix=matrix)
-        image_data = pixmap.getPNGData()
+        pixmap = page.get_pixmap(matrix=matrix)
+        image_data = pixmap.tobytes(output='PNG')
         image_file = io.BytesIO(image_data)
     
         # add a slide
