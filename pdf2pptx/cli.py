@@ -6,7 +6,7 @@ import sys
 
 from . import convert_pdf2pptx
 
-
+DEEFAULT_REESOLUTION = 300
 arg = click.argument
 opt = click.option
 
@@ -14,8 +14,8 @@ opt = click.option
 @click.command()
 @opt('-o', '--output', 'output_file', default=None,
      help='location to save the pptx (default: PDF_FILE.pptx)')
-@opt('-r', '--resolution', default=300, type=int,
-     help='resolution in dots per inch (default: 300)')
+@opt('-r', '--resolution', default=DEEFAULT_REESOLUTION, type=int,
+     help=f'resolution in dots per inch (default: {DEEFAULT_REESOLUTION})')
 @opt('-q', '--quiet', is_flag=True, default=False,
      help='disable printing progress bar and other info')
 @opt('--from', 'start_page', default=0, type=int,

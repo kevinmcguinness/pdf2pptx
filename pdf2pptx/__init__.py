@@ -6,13 +6,13 @@ from tqdm import trange
 from pptx import Presentation
 from pptx.util import Cm
 from pathlib import Path
-
+from cli import DEEFAULT_REESOLUTION
 
 __all__ = ['convert_pdf2pptx']
 
 
 def convert_pdf2pptx(
-        pdf_file, output_file, resolution, start_page, page_count,
+        pdf_file, output_file, resolution=DEEFAULT_REESOLUTION, start_page=0, page_count=None,
         quiet=False):
 
     doc = fitz.open(pdf_file)
@@ -34,7 +34,7 @@ def convert_pdf2pptx(
     page = doc.load_page(0)
     aspect_ratio = page.rect.width / page.rect.height
     prs.slide_width = int(prs.slide_height * aspect_ratio)
-    
+
     # create page iterator
     if not quiet:
         page_iter = trange(start_page, start_page + page_count)
@@ -49,14 +49,15 @@ def convert_pdf2pptx(
         pixmap = page.get_pixmap(matrix=matrix)
         image_data = pixmap.tobytes(output='PNG')
         image_file = io.BytesIO(image_data)
-    
+
         # add a slide
-        slide = prs.slides.add_slide(blank_slide_layout)    
+        slide = prs.slides.add_slide(blank_slide_layout)
         left = top = Cm(0)
-        slide.shapes.add_picture(image_file, left, top, height=prs.slide_height)
+        slide.shapes.add_picture(
+            image_file, left, top, height=prs.slide_height)
 
     if output_file is None:
         output_file = Path(pdf_file).with_suffix('.pptx')
-    
+
     # save presentation
     prs.save(output_file)
