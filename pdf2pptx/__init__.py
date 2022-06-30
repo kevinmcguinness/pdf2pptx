@@ -6,13 +6,13 @@ from tqdm import trange
 from pptx import Presentation
 from pptx.util import Cm
 from pathlib import Path
-from cli import DEFAULT_RESOLUTION, DEFAULT_START_PAGE, DEFAULT_QUIET, DEFAULT_PAGE_COUNT
+from cli import DEFAULT_RESOLUTION, DEFAULT_START_PAGE, DEFAULT_QUIET, DEFAULT_PAGE_COUNT, DEFAULT_OUTPUT
 
 __all__ = ['convert_pdf2pptx']
 
 
 def convert_pdf2pptx(
-        pdf_file, output_file, resolution=DEFAULT_RESOLUTION, start_page=DEFAULT_START_PAGE, page_count=DEFAULT_PAGE_COUNT,
+        pdf_file, output_file=DEFAULT_OUTPUT, resolution=DEFAULT_RESOLUTION, start_page=DEFAULT_START_PAGE, page_count=DEFAULT_PAGE_COUNT,
         quiet=DEFAULT_QUIET):
 
     doc = fitz.open(pdf_file)

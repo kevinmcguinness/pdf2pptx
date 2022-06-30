@@ -10,12 +10,13 @@ DEFAULT_RESOLUTION = 300
 DEFAULT_START_PAGE = 0
 DEFAULT_QUIET = False
 DEFAULT_PAGE_COUNT = None
+DEFAULT_OUTPUT = None
 arg = click.argument
 opt = click.option
 
 
 @click.command()
-@opt('-o', '--output', 'output_file', default=None,
+@opt('-o', '--output', 'output_file', default=DEFAULT_OUTPUT,
      help='location to save the pptx (default: PDF_FILE.pptx)')
 @opt('-r', '--resolution', default=DEFAULT_RESOLUTION, type=int,
      help=f'resolution in dots per inch (default: {DEFAULT_RESOLUTION})')
