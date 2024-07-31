@@ -21,7 +21,7 @@ setup(
    license='MIT',
    author_email='kevin.mcguinness@gmail.com',
    packages=['pdf2pptx'],
-   install_requires=['pymupdf==1.20.1', 'python-pptx', 'click', 'tqdm'],
+   install_requires=['pymupdf', 'python-pptx', 'click', 'tqdm'],
    entry_points={
        'console_scripts': ['pdf2pptx=pdf2pptx.cli:main'],
    },
