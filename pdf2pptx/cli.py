@@ -22,8 +22,12 @@ opt = click.option
      help='first page in the pdf to copy to the pptx')
 @opt('--count', 'page_count', default=None, type=int,
      help='number of pages in the pdf to copy to the pptx')
+@opt('-a', '--alpha', is_flag=True, default=False,
+     help='use transparent background in images')
+@opt('-t', '--template', 'template_file', default=None,
+     help='Base powerpoint file to use as template')
 @arg('pdf_file', type=click.Path(exists=True, dir_okay=False))
-def main(pdf_file, output_file, resolution, start_page, page_count, quiet):
+def main(pdf_file, output_file, resolution, start_page, page_count, quiet, alpha, template_file):
     """
     Convert a PDF slideshow to Powerpoint PPTX.
 
@@ -35,7 +39,7 @@ def main(pdf_file, output_file, resolution, start_page, page_count, quiet):
     """
     try:
         convert_pdf2pptx(
-            pdf_file, output_file, resolution, start_page, page_count, quiet)
+            pdf_file, output_file, resolution, start_page, page_count, quiet, alpha, template_file)
     except PermissionError as err:
         print(err, file=sys.stderr)
         sys.exit(1)
