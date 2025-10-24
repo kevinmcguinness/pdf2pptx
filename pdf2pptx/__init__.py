@@ -13,7 +13,7 @@ __all__ = ['convert_pdf2pptx']
 
 def convert_pdf2pptx(
         pdf_file, output_file, resolution, start_page, page_count,
-        quiet=False):
+        quiet=False, alpha=False, template_file=None):
 
     doc = fitz.open(pdf_file)
     if not quiet:
@@ -27,7 +27,12 @@ def convert_pdf2pptx(
     matrix = fitz.Matrix(zoom, zoom, 0)
 
     # create pptx presentation
-    prs = Presentation()
+    if template_file is None:
+        prs = Presentation()
+    else:
+        print("using template file " + template_file)
+        prs = Presentation(template_file)
+        
     blank_slide_layout = prs.slide_layouts[6]
 
     # configure presentation aspect ratio
@@ -46,7 +51,7 @@ def convert_pdf2pptx(
         page = doc.load_page(page_no)
 
         # write slide as a pixmap
-        pixmap = page.get_pixmap(matrix=matrix)
+        pixmap = page.get_pixmap(alpha=alpha, matrix=matrix)
         image_data = pixmap.tobytes(output='PNG')
         image_file = io.BytesIO(image_data)
     
