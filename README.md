@@ -21,14 +21,18 @@ Uses [PyMuPDF](https://github.com/pymupdf/PyMuPDF) and
 ## What it does
 
 - Renders every PDF page at a configurable DPI (default 300).
-- Sets the slide aspect ratio to match the first page of the PDF, so 16:9
-  Beamer slides produce a 16:9 deck with no letterboxing.
-- Places each rendered page as a full-bleed picture on a blank slide layout.
-- Optionally converts only a page range.
+- Sets the slide aspect ratio to match the PDF page, so 16:9 Beamer slides
+  produce a 16:9 deck with no letterboxing — or force a ratio with `--size`.
+- Places each rendered page centred on a blank slide, scaled to fit without
+  cropping, which keeps mixed-page-size PDFs intact.
+- Converts any subset of pages with a 1-based range spec (`--pages 1-5,8,12-`).
+- Optionally copies each page's text into the slide's speaker notes.
+- Reads encrypted PDFs, converts several files in one run, and refuses to
+  silently overwrite an existing deck.
 
-Note that the result is **images, not editable text** — this is a presentation
-wrapper around a PDF, not a PDF-to-PowerPoint content converter. Text in the
-output is not selectable or searchable.
+Note that the slides are **images, not editable text** — this is a presentation
+wrapper around a PDF, not a PDF-to-PowerPoint content converter. Slide text is
+not selectable, though `--notes` gives you a text copy in the notes pane.
 
 ## Requirements
 
@@ -150,11 +154,20 @@ pdf2pptx slides.pdf
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `-o`, `--output` | `PDF_FILE.pptx` | Where to write the pptx |
-| `-r`, `--resolution` | `300` | Render resolution in DPI |
+| `-o`, `--output` | `PDF_FILE.pptx` | Where to write the pptx (single input only) |
+| `-d`, `--output-dir` | alongside input | Directory to write the pptx files into |
+| `-r`, `--resolution`, `--dpi` | `300` | Render resolution in DPI |
+| `-f`, `--format` | `png` | Slide image format: `png` or `jpeg` |
+| `--quality` | `85` | JPEG quality, 1–100 (ignored for PNG) |
+| `-p`, `--pages` | all | Pages to convert, **1-based**, e.g. `1-5,8,12-` |
+| `-s`, `--size` | `auto` | Slide aspect: `auto`, or a ratio like `16:9`, `4:3` |
+| `-n`, `--notes` | off | Copy page text into the slide's speaker notes |
+| `--password` | | Password for an encrypted PDF |
+| `-y`, `--overwrite` | off | Replace the output file if it already exists |
 | `-q`, `--quiet` | off | Suppress the progress bar and info output |
-| `--from` | `0` | First PDF page to copy (**0-based**) |
-| `--count` | all pages | Number of pages to copy |
+| `--from` | `0` | *Deprecated.* First page, **0-based** — use `--pages` |
+| `--count` | all | *Deprecated.* Number of pages — use `--pages` |
+| `--version` | | Print the version and exit |
 | `--help` | | Show help and exit |
 
 ### Examples
@@ -165,30 +178,56 @@ Write to a specific file:
 pdf2pptx -o ~/talks/final.pptx slides.pdf
 ```
 
-Lower the resolution to keep the file size down — useful for long decks, since
-300 DPI on a 16:9 slide is a 3000×1688 px image per page:
+Convert a subset of pages. `--pages` is 1-based and matches what your PDF
+reader shows, so this takes pages 1 to 5, page 8, and page 12 to the end:
+
+```bash
+pdf2pptx --pages 1-5,8,12- slides.pdf
+```
+
+Lower the resolution to keep the file size down — at 300 DPI a 16:9 slide is a
+3000×1688 px image per page:
 
 ```bash
 pdf2pptx -r 150 slides.pdf
 ```
 
-Convert only pages 6–10. `--from` is 0-based, so page 6 as displayed in a PDF
-reader is index 5:
+Use JPEG for image-heavy decks (see [Choosing a format](#choosing-a-format)):
 
 ```bash
-pdf2pptx --from 5 --count 5 slides.pdf
+pdf2pptx -f jpeg --quality 80 slides.pdf
 ```
 
-Silence output, e.g. in a script:
+Copy the PDF's text into the speaker notes, so you can read your slide content
+in presenter view:
 
 ```bash
-pdf2pptx -q slides.pdf
+pdf2pptx --notes slides.pdf
 ```
 
-Convert every PDF in the current directory:
+Force a 16:9 deck even if the PDF pages are not, letterboxing them to fit:
 
 ```bash
-for f in *.pdf; do pdf2pptx "$f"; done
+pdf2pptx --size 16:9 slides.pdf
+```
+
+Open an encrypted PDF:
+
+```bash
+pdf2pptx --password 'secret' slides.pdf
+```
+
+Convert a whole directory in one run, writing the results elsewhere:
+
+```bash
+pdf2pptx --output-dir ~/talks/pptx *.pdf
+```
+
+Re-run over existing output — without `-y` the tool refuses rather than
+clobbering your previous deck:
+
+```bash
+pdf2pptx -y slides.pdf
 ```
 
 ### Use as a library
@@ -200,14 +239,31 @@ convert_pdf2pptx(
     'slides.pdf',
     'slides.pptx',
     resolution=300,
-    start_page=0,
-    page_count=None,
-    quiet=False,
+    pages='1-5,8',      # 1-based spec; None converts everything
+    image_format='jpeg',
+    quality=80,
+    notes=True,
+    slide_size='16:9',  # or 'auto' to take it from the page
+    password=None,
+    quiet=True,
 )
 ```
 
-Passing `output_file=None` writes alongside the input with a `.pptx` suffix.
-Passing `page_count=None` converts through to the end of the document.
+Returns the `Path` the deck was written to. `output_file=None` writes alongside
+the input with a `.pptx` suffix. The older positional signature
+`convert_pdf2pptx(pdf, out, resolution, start_page, page_count, quiet)` still
+works unchanged, so existing scripts keep running.
+
+Two helpers are exported if you want to validate input yourself:
+
+```python
+from pdf2pptx import parse_page_spec, parse_slide_size
+
+parse_page_spec('1-3,8', 10)   # -> [0, 1, 2, 7]   (0-based indices)
+parse_slide_size('16:9')       # -> 1.777...       (None for 'auto')
+```
+
+Both raise `ValueError` with a readable message on bad input.
 
 ## Choosing a resolution
 
@@ -220,6 +276,23 @@ Higher DPI means sharper slides and larger files. Rendered pixel width is
 | 150 | 1500×844 | Screen presentation, small files |
 | 300 | 3000×1688 | Default; good for projectors and zooming |
 | 600 | 6000×3375 | Print or very large displays; big files |
+
+## Choosing a format
+
+PNG is the default and is lossless. JPEG helps mainly on decks full of
+photographs or gradients; on flat text and line art PNG compresses about as
+well, so JPEG buys little and costs you artefacts around text.
+
+Measured on this tool at 300 DPI, `--quality 85`:
+
+| Deck content | PNG | JPEG | Saving |
+| --- | --- | --- | --- |
+| Full-page photographic image | 2931 KB | 1355 KB | 2.2× smaller |
+| Plain text slides | 170 KB | 151 KB | 1.1× smaller |
+
+Reach for `-f jpeg` when a PNG deck is too big to email; stay on PNG when the
+slides are mostly text. Lowering `--dpi` is usually the more effective lever
+either way.
 
 ## Troubleshooting
 
@@ -240,25 +313,43 @@ install with pipx (Option 4), which handles `PATH` for you.
 
 **The output deck is enormous.**
 Lower the DPI with `-r`. 150 DPI is usually indistinguishable when projected
-and roughly a quarter the pixels of the default.
+and roughly a quarter the pixels of the default. If the slides are photographic,
+`-f jpeg` helps too — see [Choosing a format](#choosing-a-format).
 
-**Slides are letterboxed or cropped in PowerPoint.**
-The deck's aspect ratio is taken from the *first* page of the PDF. If your PDF
-mixes page sizes, split it or convert the differently-sized pages separately.
+**Slides are letterboxed in PowerPoint.**
+The deck's aspect ratio comes from the first converted page. If your PDF mixes
+page sizes, later pages are centred and scaled to fit, which leaves bars around
+them rather than cropping. Force a single ratio with `--size 16:9`, or convert
+the differently-sized pages separately with `--pages`.
+
+**`--pages 3` gave me the wrong page.**
+`--pages` is 1-based, matching your PDF reader. The older `--from` is 0-based;
+they are deliberately different, which is why `--from` is deprecated.
+
+**`... already exists, use --overwrite to replace it`**
+The tool won't silently replace an existing deck. Pass `-y` to allow it.
+
+**`... is password protected: supply one with --password`**
+The PDF is encrypted. Pass `--password 'yourpassword'`.
+
+**`--notes` produced empty notes.**
+The PDF has no text layer — typically because it's a scan, or because the
+slides were exported as outlines/images. There is no text for the tool to copy.
 
 ## How it works
 
-For each requested page, PyMuPDF renders a pixmap at `dpi/72` zoom, which is
-encoded as PNG in memory. python-pptx then creates a slide using the blank
-layout (index 6 of the default template) and adds the PNG as a picture scaled
-to the full slide height at position (0, 0). The deck's `slide_width` is set
-from the first page's aspect ratio before any slides are added. Nothing touches
-the disk except the final `.pptx`.
+For each selected page, PyMuPDF renders a pixmap at `dpi/72` zoom, encoded in
+memory as PNG or JPEG. python-pptx creates a slide from the blank layout
+(index 6 of the default template) and adds that image centred, scaled to fit
+the slide without cropping. The deck's `slide_width` is set from the first
+selected page's aspect ratio — or from `--size` — before any slides are added,
+so a deck whose pages all share one ratio comes out edge to edge with no bars.
+With `--notes`, the page's text layer is copied into the slide's notes. Nothing
+touches the disk except the final `.pptx`.
 
 ## Differences from upstream
 
-This fork is functionally identical in output; the changes are about running on
-a current Python stack.
+### Compatibility fixes
 
 - **Relaxed the `pymupdf==1.20.1` pin to `pymupdf>=1.20.1`.** The hard pin was
   the reason the package couldn't be installed on recent Python versions.
@@ -272,7 +363,29 @@ a current Python stack.
   in pip 25.3; the new layout builds a PEP 660 editable wheel instead.
 - **Declared `requires-python = ">=3.8"`** and refreshed the trove classifiers,
   which previously listed only Python 3.6.
-- Version bumped to 1.0.6.
+
+### New features
+
+- **`--pages`** with a 1-based spec (`1-5,8,12-`), replacing the 0-based
+  `--from`/`--count` pair. Both old options still work.
+- **`--format` / `--quality`** for JPEG output.
+- **`--notes`** to copy page text into the slides' speaker notes.
+- **`--size`** to force a slide aspect ratio instead of deriving it.
+- **`--password`** for encrypted PDFs.
+- **Multiple input files** in one run, with **`--output-dir`**.
+- **`--overwrite`**, so an existing deck is never silently replaced.
+- **`--dpi`** as an alias for `--resolution`, and **`--version`**.
+
+### Fixes
+
+- **Out-of-range page selections no longer raise a traceback.** Upstream,
+  `--from 50` or `--count 999` on a short document raised an unhandled
+  exception from `load_page`. Selections are now validated, `--count` clamps to
+  the pages available with a note, and bad input produces a readable message.
+- **Pages are centred and scaled to fit** rather than sized by height alone, so
+  PDFs with mixed page sizes are no longer cropped horizontally.
+- The slide aspect ratio comes from the first *selected* page rather than
+  always page 1.
 
 Verified against Python 3.13.5, PyMuPDF 1.26.3, python-pptx 1.0.2, click 8.1.8,
 and tqdm 4.67.1.
