@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdf2pptx"
+version = "1.1.0"
+description = "Utility to convert a PDF slideshow to Powerpoint PPTX."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Kevin McGuinness", email = "kevin.mcguinness@gmail.com"},
+]
+dependencies = [
+    "pymupdf>=1.20.1",
+    "python-pptx>=0.6.21",
+    "click>=8.0",
+    "tqdm>=4.0",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Utilities",
+    "Topic :: Multimedia :: Graphics :: Presentation",
+]
+
+[project.urls]
+Homepage = "https://github.com/kevinmcguinness/pdf2pptx"
+
+[project.scripts]
+pdf2pptx = "pdf2pptx.cli:main"
+
+[tool.setuptools]
+packages = ["pdf2pptx"]
